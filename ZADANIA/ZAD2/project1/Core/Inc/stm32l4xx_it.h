@@ -1,0 +1,1 @@
+#ifndef__STM32L4xx_IT_H#define__STM32L4xx_IT_H#ifdef__cplusplusextern"C"{#endifvoidNMI_Handler(void);voidHardFault_Handler(void);voidMemManage_Handler(void);voidBusFault_Handler(void);voidUsageFault_Handler(void);voidSVC_Handler(void);voidDebugMon_Handler(void);voidPendSV_Handler(void);voidSysTick_Handler(void);#ifdef__cplusplus}#endif#endif

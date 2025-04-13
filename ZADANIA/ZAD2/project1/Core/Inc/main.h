@@ -1,0 +1,1 @@
+#ifndef__MAIN_H#define__MAIN_H#ifdef__cplusplusextern"C"{#endif#include"stm32l4xx_hal.h"voidError_Handler(void);#ifdef__cplusplus}#endif#endif

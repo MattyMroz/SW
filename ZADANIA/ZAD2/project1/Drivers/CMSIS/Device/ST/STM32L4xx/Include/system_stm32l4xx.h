@@ -1,0 +1,1 @@
+#ifndef__SYSTEM_STM32L4XX_H#define__SYSTEM_STM32L4XX_H#ifdef__cplusplusextern"C"{#endifexternuint32_tSystemCoreClock;externconstuint8_tAHBPrescTable[16];externconstuint8_tAPBPrescTable[8];externconstuint32_tMSIRangeTable[12];externvoidSystemInit(void);externvoidSystemCoreClockUpdate(void);#ifdef__cplusplus}#endif#endif
