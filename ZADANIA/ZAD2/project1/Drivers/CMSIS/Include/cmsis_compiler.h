@@ -1,1 +1,283 @@
-#ifndef__CMSIS_COMPILER_H#define__CMSIS_COMPILER_H#include<stdint.h>#ifdefined(__CC_ARM)#include"cmsis_armcc.h"#elifdefined(__ARMCC_VERSION)&&(__ARMCC_VERSION>=6010050)&&(__ARMCC_VERSION<6100100)#include"cmsis_armclang_ltm.h"#elifdefined(__ARMCC_VERSION)&&(__ARMCC_VERSION>=6100100)#include"cmsis_armclang.h"#elifdefined(__GNUC__)#include"cmsis_gcc.h"#elifdefined(__ICCARM__)#include<cmsis_iccarm.h>#elifdefined(__TI_ARM__)#include<cmsis_ccs.h>#ifndef__ASM#define__ASM__asm#endif#ifndef__INLINE#define__INLINEinline#endif#ifndef__STATIC_INLINE#define__STATIC_INLINEstaticinline#endif#ifndef__STATIC_FORCEINLINE#define__STATIC_FORCEINLINE__STATIC_INLINE#endif#ifndef__NO_RETURN#define__NO_RETURN__attribute__((noreturn))#endif#ifndef__USED#define__USED__attribute__((used))#endif#ifndef__WEAK#define__WEAK__attribute__((weak))#endif#ifndef__PACKED#define__PACKED__attribute__((packed))#endif#ifndef__PACKED_STRUCT#define__PACKED_STRUCTstruct__attribute__((packed))#endif#ifndef__PACKED_UNION#define__PACKED_UNIONunion__attribute__((packed))#endif#ifndef__UNALIGNED_UINT32struct__attribute__((packed))T_UINT32{uint32_tv;};#define__UNALIGNED_UINT32(x)(((structT_UINT32*)(x))->v)#endif#ifndef__UNALIGNED_UINT16_WRITE__PACKED_STRUCTT_UINT16_WRITE{uint16_tv;};#define__UNALIGNED_UINT16_WRITE(addr,val)(void)((((structT_UINT16_WRITE*)(void*)(addr))->v)=(val))#endif#ifndef__UNALIGNED_UINT16_READ__PACKED_STRUCTT_UINT16_READ{uint16_tv;};#define__UNALIGNED_UINT16_READ(addr)(((conststructT_UINT16_READ*)(constvoid*)(addr))->v)#endif#ifndef__UNALIGNED_UINT32_WRITE__PACKED_STRUCTT_UINT32_WRITE{uint32_tv;};#define__UNALIGNED_UINT32_WRITE(addr,val)(void)((((structT_UINT32_WRITE*)(void*)(addr))->v)=(val))#endif#ifndef__UNALIGNED_UINT32_READ__PACKED_STRUCTT_UINT32_READ{uint32_tv;};#define__UNALIGNED_UINT32_READ(addr)(((conststructT_UINT32_READ*)(constvoid*)(addr))->v)#endif#ifndef__ALIGNED#define__ALIGNED(x)__attribute__((aligned(x)))#endif#ifndef__RESTRICT#define__RESTRICT__restrict#endif#ifndef__COMPILER_BARRIER#warningNocompilerspecificsolutionfor__COMPILER_BARRIER.__COMPILER_BARRIERisignored.#define__COMPILER_BARRIER()(void)0#endif#elifdefined(__TASKING__)#ifndef__ASM#define__ASM__asm#endif#ifndef__INLINE#define__INLINEinline#endif#ifndef__STATIC_INLINE#define__STATIC_INLINEstaticinline#endif#ifndef__STATIC_FORCEINLINE#define__STATIC_FORCEINLINE__STATIC_INLINE#endif#ifndef__NO_RETURN#define__NO_RETURN__attribute__((noreturn))#endif#ifndef__USED#define__USED__attribute__((used))#endif#ifndef__WEAK#define__WEAK__attribute__((weak))#endif#ifndef__PACKED#define__PACKED__packed__#endif#ifndef__PACKED_STRUCT#define__PACKED_STRUCTstruct__packed__#endif#ifndef__PACKED_UNION#define__PACKED_UNIONunion__packed__#endif#ifndef__UNALIGNED_UINT32struct__packed__T_UINT32{uint32_tv;};#define__UNALIGNED_UINT32(x)(((structT_UINT32*)(x))->v)#endif#ifndef__UNALIGNED_UINT16_WRITE__PACKED_STRUCTT_UINT16_WRITE{uint16_tv;};#define__UNALIGNED_UINT16_WRITE(addr,val)(void)((((structT_UINT16_WRITE*)(void*)(addr))->v)=(val))#endif#ifndef__UNALIGNED_UINT16_READ__PACKED_STRUCTT_UINT16_READ{uint16_tv;};#define__UNALIGNED_UINT16_READ(addr)(((conststructT_UINT16_READ*)(constvoid*)(addr))->v)#endif#ifndef__UNALIGNED_UINT32_WRITE__PACKED_STRUCTT_UINT32_WRITE{uint32_tv;};#define__UNALIGNED_UINT32_WRITE(addr,val)(void)((((structT_UINT32_WRITE*)(void*)(addr))->v)=(val))#endif#ifndef__UNALIGNED_UINT32_READ__PACKED_STRUCTT_UINT32_READ{uint32_tv;};#define__UNALIGNED_UINT32_READ(addr)(((conststructT_UINT32_READ*)(constvoid*)(addr))->v)#endif#ifndef__ALIGNED#define__ALIGNED(x)__align(x)#endif#ifndef__RESTRICT#warningNocompilerspecificsolutionfor__RESTRICT.__RESTRICTisignored.#define__RESTRICT#endif#ifndef__COMPILER_BARRIER#warningNocompilerspecificsolutionfor__COMPILER_BARRIER.__COMPILER_BARRIERisignored.#define__COMPILER_BARRIER()(void)0#endif#elifdefined(__CSMC__)#include<cmsis_csm.h>#ifndef__ASM#define__ASM_asm#endif#ifndef__INLINE#define__INLINEinline#endif#ifndef__STATIC_INLINE#define__STATIC_INLINEstaticinline#endif#ifndef__STATIC_FORCEINLINE#define__STATIC_FORCEINLINE__STATIC_INLINE#endif#ifndef__NO_RETURN#define__NO_RETURN#endif#ifndef__USED#warningNocompilerspecificsolutionfor__USED.__USEDisignored.#define__USED#endif#ifndef__WEAK#define__WEAK__weak#endif#ifndef__PACKED#define__PACKED@packed#endif#ifndef__PACKED_STRUCT#define__PACKED_STRUCT@packedstruct#endif#ifndef__PACKED_UNION#define__PACKED_UNION@packedunion#endif#ifndef__UNALIGNED_UINT32@packedstructT_UINT32{uint32_tv;};#define__UNALIGNED_UINT32(x)(((structT_UINT32*)(x))->v)#endif#ifndef__UNALIGNED_UINT16_WRITE__PACKED_STRUCTT_UINT16_WRITE{uint16_tv;};#define__UNALIGNED_UINT16_WRITE(addr,val)(void)((((structT_UINT16_WRITE*)(void*)(addr))->v)=(val))#endif#ifndef__UNALIGNED_UINT16_READ__PACKED_STRUCTT_UINT16_READ{uint16_tv;};#define__UNALIGNED_UINT16_READ(addr)(((conststructT_UINT16_READ*)(constvoid*)(addr))->v)#endif#ifndef__UNALIGNED_UINT32_WRITE__PACKED_STRUCTT_UINT32_WRITE{uint32_tv;};#define__UNALIGNED_UINT32_WRITE(addr,val)(void)((((structT_UINT32_WRITE*)(void*)(addr))->v)=(val))#endif#ifndef__UNALIGNED_UINT32_READ__PACKED_STRUCTT_UINT32_READ{uint32_tv;};#define__UNALIGNED_UINT32_READ(addr)(((conststructT_UINT32_READ*)(constvoid*)(addr))->v)#endif#ifndef__ALIGNED#warningNocompilerspecificsolutionfor__ALIGNED.__ALIGNEDisignored.#define__ALIGNED(x)#endif#ifndef__RESTRICT#warningNocompilerspecificsolutionfor__RESTRICT.__RESTRICTisignored.#define__RESTRICT#endif#ifndef__COMPILER_BARRIER#warningNocompilerspecificsolutionfor__COMPILER_BARRIER.__COMPILER_BARRIERisignored.#define__COMPILER_BARRIER()(void)0#endif#else#errorUnknowncompiler.#endif#endif
+/**************************************************************************//**
+ * @file     cmsis_compiler.h
+ * @brief    CMSIS compiler generic header file
+ * @version  V5.1.0
+ * @date     09. October 2018
+ ******************************************************************************/
+/*
+ * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the License); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef __CMSIS_COMPILER_H
+#define __CMSIS_COMPILER_H
+
+#include <stdint.h>
+
+/*
+ * Arm Compiler 4/5
+ */
+#if   defined ( __CC_ARM )
+  #include "cmsis_armcc.h"
+
+
+/*
+ * Arm Compiler 6.6 LTM (armclang)
+ */
+#elif defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050) && (__ARMCC_VERSION < 6100100)
+  #include "cmsis_armclang_ltm.h"
+
+  /*
+ * Arm Compiler above 6.10.1 (armclang)
+ */
+#elif defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6100100)
+  #include "cmsis_armclang.h"
+
+
+/*
+ * GNU Compiler
+ */
+#elif defined ( __GNUC__ )
+  #include "cmsis_gcc.h"
+
+
+/*
+ * IAR Compiler
+ */
+#elif defined ( __ICCARM__ )
+  #include <cmsis_iccarm.h>
+
+
+/*
+ * TI Arm Compiler
+ */
+#elif defined ( __TI_ARM__ )
+  #include <cmsis_ccs.h>
+
+  #ifndef   __ASM
+    #define __ASM                                  __asm
+  #endif
+  #ifndef   __INLINE
+    #define __INLINE                               inline
+  #endif
+  #ifndef   __STATIC_INLINE
+    #define __STATIC_INLINE                        static inline
+  #endif
+  #ifndef   __STATIC_FORCEINLINE
+    #define __STATIC_FORCEINLINE                   __STATIC_INLINE
+  #endif
+  #ifndef   __NO_RETURN
+    #define __NO_RETURN                            __attribute__((noreturn))
+  #endif
+  #ifndef   __USED
+    #define __USED                                 __attribute__((used))
+  #endif
+  #ifndef   __WEAK
+    #define __WEAK                                 __attribute__((weak))
+  #endif
+  #ifndef   __PACKED
+    #define __PACKED                               __attribute__((packed))
+  #endif
+  #ifndef   __PACKED_STRUCT
+    #define __PACKED_STRUCT                        struct __attribute__((packed))
+  #endif
+  #ifndef   __PACKED_UNION
+    #define __PACKED_UNION                         union __attribute__((packed))
+  #endif
+  #ifndef   __UNALIGNED_UINT32        /* deprecated */
+    struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+    #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  #endif
+  #ifndef   __UNALIGNED_UINT16_WRITE
+    __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+    #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void*)(addr))->v) = (val))
+  #endif
+  #ifndef   __UNALIGNED_UINT16_READ
+    __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+    #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(addr))->v)
+  #endif
+  #ifndef   __UNALIGNED_UINT32_WRITE
+    __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+    #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))->v) = (val))
+  #endif
+  #ifndef   __UNALIGNED_UINT32_READ
+    __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+    #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(addr))->v)
+  #endif
+  #ifndef   __ALIGNED
+    #define __ALIGNED(x)                           __attribute__((aligned(x)))
+  #endif
+  #ifndef   __RESTRICT
+    #define __RESTRICT                             __restrict
+  #endif
+  #ifndef   __COMPILER_BARRIER
+    #warning No compiler specific solution for __COMPILER_BARRIER. __COMPILER_BARRIER is ignored.
+    #define __COMPILER_BARRIER()                   (void)0
+  #endif
+
+
+/*
+ * TASKING Compiler
+ */
+#elif defined ( __TASKING__ )
+  /*
+   * The CMSIS functions have been implemented as intrinsics in the compiler.
+   * Please use "carm -?i" to get an up to date list of all intrinsics,
+   * Including the CMSIS ones.
+   */
+
+  #ifndef   __ASM
+    #define __ASM                                  __asm
+  #endif
+  #ifndef   __INLINE
+    #define __INLINE                               inline
+  #endif
+  #ifndef   __STATIC_INLINE
+    #define __STATIC_INLINE                        static inline
+  #endif
+  #ifndef   __STATIC_FORCEINLINE
+    #define __STATIC_FORCEINLINE                   __STATIC_INLINE
+  #endif
+  #ifndef   __NO_RETURN
+    #define __NO_RETURN                            __attribute__((noreturn))
+  #endif
+  #ifndef   __USED
+    #define __USED                                 __attribute__((used))
+  #endif
+  #ifndef   __WEAK
+    #define __WEAK                                 __attribute__((weak))
+  #endif
+  #ifndef   __PACKED
+    #define __PACKED                               __packed__
+  #endif
+  #ifndef   __PACKED_STRUCT
+    #define __PACKED_STRUCT                        struct __packed__
+  #endif
+  #ifndef   __PACKED_UNION
+    #define __PACKED_UNION                         union __packed__
+  #endif
+  #ifndef   __UNALIGNED_UINT32        /* deprecated */
+    struct __packed__ T_UINT32 { uint32_t v; };
+    #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  #endif
+  #ifndef   __UNALIGNED_UINT16_WRITE
+    __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+    #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))->v) = (val))
+  #endif
+  #ifndef   __UNALIGNED_UINT16_READ
+    __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+    #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(addr))->v)
+  #endif
+  #ifndef   __UNALIGNED_UINT32_WRITE
+    __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+    #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))->v) = (val))
+  #endif
+  #ifndef   __UNALIGNED_UINT32_READ
+    __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+    #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(addr))->v)
+  #endif
+  #ifndef   __ALIGNED
+    #define __ALIGNED(x)              __align(x)
+  #endif
+  #ifndef   __RESTRICT
+    #warning No compiler specific solution for __RESTRICT. __RESTRICT is ignored.
+    #define __RESTRICT
+  #endif
+  #ifndef   __COMPILER_BARRIER
+    #warning No compiler specific solution for __COMPILER_BARRIER. __COMPILER_BARRIER is ignored.
+    #define __COMPILER_BARRIER()                   (void)0
+  #endif
+
+
+/*
+ * COSMIC Compiler
+ */
+#elif defined ( __CSMC__ )
+   #include <cmsis_csm.h>
+
+ #ifndef   __ASM
+    #define __ASM                                  _asm
+  #endif
+  #ifndef   __INLINE
+    #define __INLINE                               inline
+  #endif
+  #ifndef   __STATIC_INLINE
+    #define __STATIC_INLINE                        static inline
+  #endif
+  #ifndef   __STATIC_FORCEINLINE
+    #define __STATIC_FORCEINLINE                   __STATIC_INLINE
+  #endif
+  #ifndef   __NO_RETURN
+    // NO RETURN is automatically detected hence no warning here
+    #define __NO_RETURN
+  #endif
+  #ifndef   __USED
+    #warning No compiler specific solution for __USED. __USED is ignored.
+    #define __USED
+  #endif
+  #ifndef   __WEAK
+    #define __WEAK                                 __weak
+  #endif
+  #ifndef   __PACKED
+    #define __PACKED                               @packed
+  #endif
+  #ifndef   __PACKED_STRUCT
+    #define __PACKED_STRUCT                        @packed struct
+  #endif
+  #ifndef   __PACKED_UNION
+    #define __PACKED_UNION                         @packed union
+  #endif
+  #ifndef   __UNALIGNED_UINT32        /* deprecated */
+    @packed struct T_UINT32 { uint32_t v; };
+    #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  #endif
+  #ifndef   __UNALIGNED_UINT16_WRITE
+    __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+    #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))->v) = (val))
+  #endif
+  #ifndef   __UNALIGNED_UINT16_READ
+    __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+    #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(addr))->v)
+  #endif
+  #ifndef   __UNALIGNED_UINT32_WRITE
+    __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+    #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))->v) = (val))
+  #endif
+  #ifndef   __UNALIGNED_UINT32_READ
+    __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+    #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(addr))->v)
+  #endif
+  #ifndef   __ALIGNED
+    #warning No compiler specific solution for __ALIGNED. __ALIGNED is ignored.
+    #define __ALIGNED(x)
+  #endif
+  #ifndef   __RESTRICT
+    #warning No compiler specific solution for __RESTRICT. __RESTRICT is ignored.
+    #define __RESTRICT
+  #endif
+  #ifndef   __COMPILER_BARRIER
+    #warning No compiler specific solution for __COMPILER_BARRIER. __COMPILER_BARRIER is ignored.
+    #define __COMPILER_BARRIER()                   (void)0
+  #endif
+
+
+#else
+  #error Unknown compiler.
+#endif
+
+
+#endif /* __CMSIS_COMPILER_H */
+

@@ -1,0 +1,1 @@
+#include"main.h"#include"stm32l4xx_it.h"voidNMI_Handler(void){while(1){}}voidHardFault_Handler(void){while(1){}}voidMemManage_Handler(void){while(1){}}voidBusFault_Handler(void){while(1){}}voidUsageFault_Handler(void){while(1){}}voidSVC_Handler(void){}voidDebugMon_Handler(void){}voidPendSV_Handler(void){}voidSysTick_Handler(void){HAL_IncTick();}

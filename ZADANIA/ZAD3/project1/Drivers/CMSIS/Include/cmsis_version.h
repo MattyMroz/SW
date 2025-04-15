@@ -1,0 +1,1 @@
+#ifdefined(__ICCARM__)#pragmasystem_include#elifdefined(__clang__)#pragmaclangsystem_header#endif#ifndef__CMSIS_VERSION_H#define__CMSIS_VERSION_H#define__CM_CMSIS_VERSION_MAIN(5U)#define__CM_CMSIS_VERSION_SUB(3U)#define__CM_CMSIS_VERSION((__CM_CMSIS_VERSION_MAIN<<16U)|\__CM_CMSIS_VERSION_SUB)#endif
