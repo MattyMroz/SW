@@ -75,17 +75,23 @@ typedef struct
 
 // === Definicje portów JOYSTICK ===
 // --- Definicje pinów i portów dla diody RGB D9 ---
+
+// === Definicje portów ===
 #define LED_RGB_RED_PORT GPIOD
 #define LED_RGB_GREEN_PORT GPIOB
 #define LED_RGB_BLUE_PORT GPIOD
 
+// === Definicje pinów ===
 #define LED_RGB_RED_PIN GPIO_PIN_13
 #define LED_RGB_GREEN_PIN GPIO_PIN_8
 #define LED_RGB_BLUE_PIN GPIO_PIN_12
 
 // --- Definicje pinów i portów dla dżojstika SW1 ---
+
+// === Definicje portów ===
 #define JOYSTICK_PORT GPIOE
 
+// === Definicje pinów ===
 #define JOYSTICK_LEFT_PIN GPIO_PIN_1
 #define JOYSTICK_RIGHT_PIN GPIO_PIN_0
 #define JOYSTICK_UP_PIN GPIO_PIN_3
