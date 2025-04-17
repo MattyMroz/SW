@@ -45,12 +45,10 @@ typedef struct
 // === Definicje konfiguracyjne dla aplikacji ===
 
 // --- Konfiguracja efektu LED ---
-// Czas kroku w milisekundach (500ms ON + 500ms OFF = 1 sekunda na diodę)
-#define LED_STEP_DELAY_MS 500
+// Czas kroku w milisekundach (1000ms = sekunda na diodę)
+#define LED_STEP_DELAY_MS 1000
 // Opcja efektu: 1 = odbicie (D1<->D8), 0 = pętla (D1->D8->D1)
 #define LED_BOUNCE 1
-// Liczba diod w sekwencji
-#define LED_COUNT 8
 
 // --- Definicje pinów i portów dla diod D1-D8 ---
 // === Definicje portów ===
@@ -85,7 +83,7 @@ typedef struct
 /* USER CODE BEGIN PV */
 // --- Tablica struktur przechowująca konfigurację pinów dla diod D1-D8 ---
 // Używana w pętli głównej do iteracji po diodach
-const LedPinInfo_t leds[LED_COUNT] = {
+const LedPinInfo_t leds[] = {
     {LED_PORT_C, LED1_PIN}, // Indeks 0: Dioda D1
     {LED_PORT_C, LED2_PIN}, // Indeks 1: Dioda D2
     {LED_PORT_C, LED3_PIN}, // Indeks 2: Dioda D3
@@ -95,6 +93,9 @@ const LedPinInfo_t leds[LED_COUNT] = {
     {LED_PORT_E, LED7_PIN}, // Indeks 6: Dioda D7
     {LED_PORT_E, LED8_PIN}  // Indeks 7: Dioda D8
 };
+
+// Liczba diod w sekwencji
+#define LED_COUNT (sizeof(leds) / sizeof(leds[0]))
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -157,9 +158,6 @@ int main(void)
 
     // --- Zgaszenie aktualnej diody LED (metoda bitowa z użyciem tablicy struktur) ---
     leds[current_led].PORT->BRR = leds[current_led].PIN; // Bezpośredni zapis do rejestru BRR
-
-    // --- Opóźnienie (czas zgaszenia) ---
-    HAL_Delay(LED_STEP_DELAY_MS);
 
     // --- Logika zmiany diody na następną ---
     if (LED_BOUNCE == 1)
@@ -238,7 +236,6 @@ void SystemClock_Config(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  int i; // Zmienna iteracyjna dla pętli
 
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 
@@ -249,23 +246,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  /* === Ustawienie początkowego stanu pinów na niski (diody zgaszone) === */
-  /* Iterujemy po tablicy struktur, aby wyłączyć wszystkie diody */
-  for (i = 0; i < LED_COUNT; i++)
-  {
-    HAL_GPIO_WritePin(leds[i].PORT, leds[i].PIN, GPIO_PIN_RESET);
-  }
 
-  /* === Konfiguracja każdego pinu LED w pętli z użyciem pełnej struktury === */
-  for (i = 0; i < LED_COUNT; i++)
-  {
-    GPIO_InitStruct.Pin = leds[i].PIN;              // Pobranie pinu z tablicy struktur
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;     // Tryb wyjścia Push-Pull
-    GPIO_InitStruct.Pull = GPIO_NOPULL;             // Brak rezystorów Pull-up/Pull-down
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    // Niska prędkość
-    GPIO_InitStruct.Alternate = 0;                  // Nie dotyczy trybu wyjścia (ustawione na 0 dla bezpieczeństwa)
-    HAL_GPIO_Init(leds[i].PORT, &GPIO_InitStruct);  // Wywołanie inicjalizacji dla danego portu i pinu
-  }
+  /* === Konfiguracja pinów LED dla Portu C === */
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = 0;
+
+  GPIO_InitStruct.Pin = LED1_PIN | LED2_PIN | LED3_PIN | LED4_PIN;
+  HAL_GPIO_Init(LED_PORT_C, &GPIO_InitStruct);
+
+  /* === Konfiguracja pinów LED dla Portu E === */
+  GPIO_InitStruct.Pin = LED5_PIN | LED7_PIN | LED8_PIN;
+  HAL_GPIO_Init(LED_PORT_E, &GPIO_InitStruct);
+
+  /* === Konfiguracja pinów LED dla Portu D === */
+  GPIO_InitStruct.Pin = LED6_PIN;
+  HAL_GPIO_Init(LED_PORT_D, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 
