@@ -315,6 +315,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
   HAL_PWREx_EnableVddIO2();
 
+  /* ================================================== */
+  /* ================================================== */
+
   /* === Konfiguracja pinów LED dla Portu C === */
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -491,13 +494,13 @@ void seven_segment_counter()
 
     // Wybór aktywnej cyfry wyświetlacza używając tablicy digits
     uint8_t digit_index = DIGIT; // Używamy DIGIT jako indeksu (0-3)
-    if (digit_index >= 0 && digit_index < 4)
+    if (digit_index >= 0 && digit_index < 4) // Zabezpieczenie
     {
       HAL_GPIO_WritePin(digits[digit_index].PORT, digits[digit_index].PIN, GPIO_PIN_SET);
     }
 
     // Wyświetlenie odpowiedniej cyfry na wyświetlaczu 7-segmentowym używając tablicy segmentów
-    if (counter < 10) // Zabezpieczenie przed wyjściem poza zakres tablicy
+    if (counter < 10) // Zabezpieczenie
     {
       HAL_GPIO_WritePin(SEG_PORT, digit_segments[counter].SEGMENTS, GPIO_PIN_SET);
     }
