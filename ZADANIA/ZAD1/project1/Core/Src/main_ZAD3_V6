@@ -1,0 +1,713 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+// --- Struktura do przechowywania informacji o pinie LED ---
+// Grupuje wskaźnik do portu i numer pinu dla łatwiejszego zarządzania
+typedef struct
+{
+  GPIO_TypeDef* PORT; // Wskaźnik na rejestry portu GPIO (np. GPIOC)
+  uint16_t      PIN;  // Maska bitowa pinu GPIO (np. GPIO_PIN_6)
+} LedPinInfo_t;
+
+// --- Struktura do przechowywania informacji o cyfrze wyświetlacza ---
+// Grupuje wskaźnik do portu i numer pinu dla łatwiejszego zarządzania
+typedef struct
+{
+  GPIO_TypeDef* PORT;
+  uint16_t      PIN;
+} DigitPinInfo_t;
+
+// --- Struktura do przechowywania informacji o segmentach cyfry ---
+// Grupuje maski bitowe segmentów dla danej cyfry
+typedef struct
+{
+  uint16_t SEGMENTS; // Maska bitowa aktywnych segmentów dla danej cyfry
+} DigitSegments_t;
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* ================================================== */
+/* == DEFINICJE KONFIGURACYJNE DLA EFEKTU LED ======= */
+/* ================================================== */
+
+// === Konfiguracja efektu LED ===
+// Czas kroku LOGICZNEGO w milisekundach (zmiana która dioda MA się świecić)
+#define LED_STEP_DELAY_MS 1000
+// Czas FIZYCZNEGO odświeżenia diody w milisekundach (jak często aktualizujemy stan GPIO)
+#define LED_REFRESH_DELAY_MS 100
+// Opcja efektu: 1 = odbicie (D1<->D8), 0 = pętla (D1->D8->D1)
+#define LED_BOUNCE 1
+
+// === Definicje pinów i portów dla diod D1-D8 ===
+// Definicje portów
+#define LED_0_1_2_3_PORT GPIOC
+#define LED_4_6_7_PORT GPIOE
+#define LED_5_PORT GPIOD
+
+// Definicje pinów
+// Port C (D1-D4)
+#define LED1_PIN  GPIO_PIN_6
+#define LED2_PIN  GPIO_PIN_7
+#define LED3_PIN  GPIO_PIN_8
+#define LED4_PIN  GPIO_PIN_9
+
+// Port E (D5, D7, D8)
+#define LED5_PIN  GPIO_PIN_4
+#define LED7_PIN  GPIO_PIN_5
+#define LED8_PIN  GPIO_PIN_6
+
+// Port D (D6)
+#define LED6_PIN  GPIO_PIN_3
+
+/* ==================================================== */
+/* == DEFINICJE KONFIGURACYJNE DLA JOYSTICKA I RGB ==== */
+/* ==================================================== */
+
+// === Definicje pinów i portów dla diody RGB D9 ===
+// Definicje portów
+#define LED_RGB_RED_PORT GPIOD
+#define LED_RGB_GREEN_PORT GPIOB
+#define LED_RGB_BLUE_PORT GPIOD
+
+// Definicje pinów
+#define LED_RGB_RED_PIN GPIO_PIN_13
+#define LED_RGB_GREEN_PIN GPIO_PIN_8
+#define LED_RGB_BLUE_PIN GPIO_PIN_12
+
+// === Definicje pinów i portów dla dżojstika SW1 ===
+// Definicje portów
+#define JOYSTICK_PORT GPIOE
+
+// Definicje pinów
+#define JOYSTICK_LEFT_PIN GPIO_PIN_1
+#define JOYSTICK_RIGHT_PIN GPIO_PIN_0
+#define JOYSTICK_UP_PIN GPIO_PIN_3
+#define JOYSTICK_DOWN_PIN GPIO_PIN_2
+#define JOYSTICK_CLICK_PIN GPIO_PIN_15
+
+// === Definicja czasu odświeżania joysticka (dla RGB i zmiany cyfry) ===
+#define JOYSTICK_REFRESH_DELAY_MS 100
+
+/* =================================================== */
+/* == DEFINICJE KONFIGURACYJNE DLA 7-SEGMENTOWEGO ==== */
+/* =================================================== */
+
+// === Definicje dla wyświetlacza 7-segmentowego ===
+// Port aktywacji cyfr
+#define DIGIT_PORT GPIOB
+#define DIGIT1_PIN GPIO_PIN_5
+#define DIGIT2_PIN GPIO_PIN_4
+#define DIGIT3_PIN GPIO_PIN_3
+#define DIGIT4_PIN GPIO_PIN_2
+
+// Port segmentów
+#define SEG_PORT GPIOG
+#define SEG_A_PIN GPIO_PIN_0
+#define SEG_B_PIN GPIO_PIN_1
+#define SEG_C_PIN GPIO_PIN_2
+#define SEG_D_PIN GPIO_PIN_3
+#define SEG_E_PIN GPIO_PIN_4
+#define SEG_F_PIN GPIO_PIN_5
+#define SEG_G_PIN GPIO_PIN_6
+
+// === Czas kroku licznika w milisekundach (1000ms = sekunda na zmianę wartości) ===
+#define COUNTER_UPDATE_DELAY_MS 1000
+
+// === Definicja czasu odświeżania joysticka (dla RGB i zmiany cyfry) ===
+// #define JOYSTICK_REFRESH_DELAY_MS 100 ! TO CO WYŻEJ
+
+// === Czas odświeżania wyświetlacza 7-seg (multipleksowanie) ===
+#define DISPLAY_REFRESH_DELAY_MS 5
+
+
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
+// --- Tablica struktur przechowująca konfigurację pinów dla diod D1-D8 ---
+const LedPinInfo_t leds[] = {
+    {LED_0_1_2_3_PORT, LED1_PIN}, // Indeks 0: Dioda D1
+    {LED_0_1_2_3_PORT, LED2_PIN}, // Indeks 1: Dioda D2
+    {LED_0_1_2_3_PORT, LED3_PIN}, // Indeks 2: Dioda D3
+    {LED_0_1_2_3_PORT, LED4_PIN}, // Indeks 3: Dioda D4
+    {LED_4_6_7_PORT, LED5_PIN},   // Indeks 4: Dioda D5
+    {LED_5_PORT, LED6_PIN},       // Indeks 5: Dioda D6
+    {LED_4_6_7_PORT, LED7_PIN},   // Indeks 6: Dioda D7
+    {LED_4_6_7_PORT, LED8_PIN}    // Indeks 7: Dioda D8
+};
+#define LED_COUNT (sizeof(leds) / sizeof(leds[0]))
+
+// --- Tablica struktur przechowująca konfigurację pinów dla cyfr wyświetlacza ---
+const DigitPinInfo_t digits[] = {
+    {DIGIT_PORT, DIGIT1_PIN},   // Indeks 0: Cyfra 1 (najbardziej na prawo)
+    {DIGIT_PORT, DIGIT2_PIN},   // Indeks 1: Cyfra 2
+    {DIGIT_PORT, DIGIT3_PIN},   // Indeks 2: Cyfra 3
+    {DIGIT_PORT, DIGIT4_PIN}    // Indeks 3: Cyfra 4 (najbardziej na lewo)
+};
+#define DIGIT_COUNT (sizeof(digits) / sizeof(digits[0]))
+
+// --- Tablica segmentów dla cyfr 0-9 ---
+const DigitSegments_t digit_segments[] = {
+    {SEG_A_PIN | SEG_B_PIN | SEG_C_PIN | SEG_D_PIN | SEG_E_PIN | SEG_F_PIN},                // 0
+    {SEG_B_PIN | SEG_C_PIN},                                                                // 1
+    {SEG_A_PIN | SEG_B_PIN | SEG_G_PIN | SEG_E_PIN | SEG_D_PIN},                            // 2
+    {SEG_A_PIN | SEG_B_PIN | SEG_G_PIN | SEG_C_PIN | SEG_D_PIN},                            // 3
+    {SEG_F_PIN | SEG_G_PIN | SEG_B_PIN | SEG_C_PIN},                                        // 4
+    {SEG_A_PIN | SEG_F_PIN | SEG_G_PIN | SEG_C_PIN | SEG_D_PIN},                            // 5
+    {SEG_A_PIN | SEG_F_PIN | SEG_G_PIN | SEG_C_PIN | SEG_D_PIN | SEG_E_PIN},                // 6
+    {SEG_A_PIN | SEG_B_PIN | SEG_C_PIN},                                                    // 7
+    {SEG_A_PIN | SEG_B_PIN | SEG_C_PIN | SEG_D_PIN | SEG_E_PIN | SEG_F_PIN | SEG_G_PIN},    // 8
+    {SEG_A_PIN | SEG_B_PIN | SEG_C_PIN | SEG_D_PIN | SEG_F_PIN | SEG_G_PIN}                 // 9
+};
+#define SEGMENT_COUNT (sizeof(digit_segments) / sizeof(digit_segments[0]))
+
+// --- Zmienne stanu ---
+static uint8_t s_current_led = 0;         // Indeks aktualnie świecącej diody LED (0-7)
+static int8_t s_led_direction = 1;        // Kierunek ruchu diody LED (1 lub -1)
+static uint8_t s_last_displayed_led = 0;  // Indeks ostatnio fizycznie zapalonej diody
+static uint8_t s_counter_value = 0;       // Wartość licznika 7-seg (0-9)
+static uint8_t s_active_digit = 0;        // Aktywna cyfra wyświetlacza 7-seg (0-3)
+
+// --- Zmienne czasowe dla zadań ---
+static uint32_t led_logic_update_tick_start = 0;
+static uint32_t led_refresh_tick_start = 0;
+static uint32_t joystick_rgb_tick_start = 0;
+static uint32_t counter_update_tick_start = 0;
+static uint32_t digit_change_tick_start = 0;
+static uint32_t display_refresh_tick_start = 0;
+
+// --- Zmienne pomocnicze dla obsługi pojedynczego kliknięcia joystickiem ---
+// Zamiast flag *_pressed, przechowujemy poprzedni stan przycisków
+static GPIO_PinState s_prev_joy_left_state = GPIO_PIN_SET;  // Inicjalizacja na stan zwolniony (PULLUP)
+static GPIO_PinState s_prev_joy_right_state = GPIO_PIN_SET; // Inicjalizacja na stan zwolniony (PULLUP)
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+
+// Funkcje pomocnicze
+void calculate_next_led_index(void);    // Oblicza kolejny indeks LED (wolno)
+void refresh_led_physical_state(void);  // Fizycznie aktualizuje stan LED (szybko)
+void update_rgb_led(void);              // Odczytuje joystick i ustawia diodę RGB  (szybko)
+void update_7seg_counter_value(void);   // Aktualizuje wartość licznika 7-seg (wolno)
+void update_7seg_active_digit(void);    // Zmienia aktywną cyfrę 7-seg (szybko)
+void refresh_7seg_display(void);        // Odświeża (multipleksuje) wyświetlacz 7-seg (szybko)
+
+// Nowe funkcje agregujące zadania
+void handle_led_sequence(uint32_t logic_delay, uint32_t refresh_delay);
+void handle_rgb_joystick(uint32_t refresh_delay);
+void handle_7seg_display(uint32_t counter_delay, uint32_t digit_change_delay, uint32_t refresh_delay);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+  // Zmienne czasowe dla pętli głównej
+  uint32_t current_tick = 0;
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  /* USER CODE BEGIN 2 */
+  // Inicjalizacja timerów
+  current_tick = HAL_GetTick(); // Pobierz czas startowy
+  led_logic_update_tick_start = current_tick;
+  led_refresh_tick_start = current_tick;
+  joystick_rgb_tick_start = current_tick;
+  counter_update_tick_start = current_tick;
+  digit_change_tick_start = current_tick;
+  display_refresh_tick_start = current_tick;
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+    current_tick = HAL_GetTick(); // Pobierz aktualny czas raz na iterację
+
+    // === Zadanie 1: Obsługa sekwencji LED D1-D8 ===
+    handle_led_sequence(LED_STEP_DELAY_MS, LED_REFRESH_DELAY_MS);
+
+    // === Zadanie 2: Obsługa dżojstika i diody RGB ===
+    handle_rgb_joystick(JOYSTICK_REFRESH_DELAY_MS);
+
+    // === Zadanie 3: Obsługa licznika na wyświetlaczu 7-segmentowym ===
+    handle_7seg_display(COUNTER_UPDATE_DELAY_MS, JOYSTICK_REFRESH_DELAY_MS, DISPLAY_REFRESH_DELAY_MS);
+
+  } // Koniec pętli while(1)
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.MSICalibrationValue = 0;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6; // 4MHz
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure the main internal regulator output voltage
+  */
+  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  HAL_PWREx_EnableVddIO2(); // Włączenie zasilania VDDIO2 dla GPIOB (7-seg)
+
+  /* ================================================== */
+  /* ================================================== */
+
+  /* === Konfiguracja pinów LED dla Portu C === */
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = 0;
+
+  GPIO_InitStruct.Pin = LED1_PIN | LED2_PIN | LED3_PIN | LED4_PIN;
+  HAL_GPIO_Init(LED_0_1_2_3_PORT, &GPIO_InitStruct);
+  // Zgaszenie diod na starcie
+  HAL_GPIO_WritePin(LED_0_1_2_3_PORT, LED1_PIN | LED2_PIN | LED3_PIN | LED4_PIN, GPIO_PIN_RESET);
+
+
+  /* === Konfiguracja pinów LED dla Portu E === */
+  GPIO_InitStruct.Pin = LED5_PIN | LED7_PIN | LED8_PIN;
+  HAL_GPIO_Init(LED_4_6_7_PORT, &GPIO_InitStruct);
+  // Zgaszenie diod na starcie
+  HAL_GPIO_WritePin(LED_4_6_7_PORT, LED5_PIN | LED7_PIN | LED8_PIN, GPIO_PIN_RESET);
+
+
+  /* === Konfiguracja pinów LED dla Portu D === */
+  GPIO_InitStruct.Pin = LED6_PIN;
+  HAL_GPIO_Init(LED_5_PORT, &GPIO_InitStruct);
+  // Zgaszenie diody na starcie
+  HAL_GPIO_WritePin(LED_5_PORT, LED6_PIN, GPIO_PIN_RESET);
+
+
+  /* ================================================== */
+  /* ================================================== */
+
+  /* === Konfiguracja pinów LED RGB dla Portu D i B === */
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+  GPIO_InitStruct.Pin = LED_RGB_RED_PIN | LED_RGB_BLUE_PIN;
+  HAL_GPIO_Init(LED_RGB_RED_PORT, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_RGB_RED_PORT, LED_RGB_RED_PIN | LED_RGB_BLUE_PIN, GPIO_PIN_RESET);
+
+
+  GPIO_InitStruct.Pin = LED_RGB_GREEN_PIN;
+  HAL_GPIO_Init(LED_RGB_GREEN_PORT, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, GPIO_PIN_RESET);
+
+
+  /* === Konfiguracja pinów Joystick dla Portu E === */
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP; // Aktywacja rezystorów podciągających
+  GPIO_InitStruct.Pin = JOYSTICK_LEFT_PIN | JOYSTICK_RIGHT_PIN | JOYSTICK_UP_PIN | JOYSTICK_DOWN_PIN | JOYSTICK_CLICK_PIN;
+  HAL_GPIO_Init(JOYSTICK_PORT, &GPIO_InitStruct);
+
+  /* ================================================== */
+  /* ================================================== */
+
+  /* === Konfiguracja pinów wyświetlacza 7-segmentowego === */
+  /* === Piny aktywacyjne wyświetlacza === */
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Pin = DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN | DIGIT4_PIN;
+  HAL_GPIO_Init(DIGIT_PORT, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(DIGIT_PORT, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN | DIGIT4_PIN, GPIO_PIN_RESET);
+
+
+  /* === Piny segmentów wyświetlacza=== */
+  GPIO_InitStruct.Pin = SEG_A_PIN | SEG_B_PIN | SEG_C_PIN |
+                       SEG_D_PIN | SEG_E_PIN | SEG_F_PIN | SEG_G_PIN;
+  HAL_GPIO_Init(SEG_PORT, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(SEG_PORT, SEG_A_PIN | SEG_B_PIN | SEG_C_PIN | SEG_D_PIN | SEG_E_PIN | SEG_F_PIN | SEG_G_PIN, GPIO_PIN_RESET);
+}
+
+/* USER CODE BEGIN 4 */
+
+// === Funkcje agregujące zadania ===
+
+// --- Funkcja obsługująca sekwencję LED D1-D8 ---
+void handle_led_sequence(uint32_t logic_delay, uint32_t refresh_delay)
+{
+    uint32_t current_tick = HAL_GetTick();
+
+    // Sprawdzenie czasu dla OBLICZENIA kolejnej diody LED
+    if ((current_tick - led_logic_update_tick_start) >= logic_delay)
+    {
+        calculate_next_led_index();
+        led_logic_update_tick_start = current_tick;
+    }
+
+    // Sprawdzenie czasu dla FIZYCZNEGO odświeżenia stanu diod LED
+    if ((current_tick - led_refresh_tick_start) >= refresh_delay)
+    {
+        refresh_led_physical_state();
+        led_refresh_tick_start = current_tick;
+    }
+}
+
+// --- Funkcja obsługująca joystick i diodę RGB ---
+void handle_rgb_joystick(uint32_t refresh_delay)
+{
+    uint32_t current_tick = HAL_GetTick();
+
+    // Sprawdzenie czasu dla odczytu joysticka i sterowania RGB
+    if ((current_tick - joystick_rgb_tick_start) >= refresh_delay)
+    {
+        update_rgb_led();
+        joystick_rgb_tick_start = current_tick;
+    }
+}
+
+// --- Funkcja obsługująca wyświetlacz 7-segmentowy ---
+void handle_7seg_display(uint32_t counter_delay, uint32_t digit_change_delay, uint32_t refresh_delay)
+{
+    uint32_t current_tick = HAL_GetTick();
+
+    // Sprawdzenie czasu dla aktualizacji wartości licznika 7-seg
+    if ((current_tick - counter_update_tick_start) >= counter_delay)
+    {
+        update_7seg_counter_value();
+        counter_update_tick_start = current_tick;
+    }
+
+    // Sprawdzenie czasu dla zmiany aktywnej cyfry 7-seg
+    if ((current_tick - digit_change_tick_start) >= digit_change_delay)
+    {
+        update_7seg_active_digit();
+        digit_change_tick_start = current_tick;
+    }
+
+    // Sprawdzenie czasu dla odświeżania wyświetlacza 7-seg
+    if ((current_tick - display_refresh_tick_start) >= refresh_delay)
+    {
+        refresh_7seg_display();
+        display_refresh_tick_start = current_tick;
+    }
+}
+
+// --- Funkcja obliczająca KOLEJNY indeks diody LED (wywoływana co LED_STEP_DELAY_MS) ---
+void calculate_next_led_index(void)
+{
+    // --- Aktualizacja indeksu diody ---
+    if (LED_BOUNCE == 1)
+    {
+      // Sprawdź *przed* inkrementacją/dekrementacją, czy jesteśmy na końcu
+      if (s_current_led == (LED_COUNT - 1) && s_led_direction == 1) {
+          s_led_direction = -1; // Zmień kierunek na ostatniej diodzie
+      } else if (s_current_led == 0 && s_led_direction == -1) {
+          s_led_direction = 1; // Zmień kierunek na pierwszej diodzie
+      }
+      // Teraz wykonaj ruch
+      s_current_led += s_led_direction;
+
+      // Dodatkowe zabezpieczenie (nie powinno być potrzebne przy poprawnej logice zmiany kierunku)
+      if (s_current_led >= LED_COUNT) { // Jeśli jakimś cudem wyszliśmy poza zakres
+          s_current_led = LED_COUNT - 2; // Wróć do przedostatniej
+          s_led_direction = -1;
+      } else if (s_current_led < 0) { // Jeśli jakimś cudem wyszliśmy poza zakres
+          s_current_led = 1; // Wróć do drugiej
+          s_led_direction = 1;
+      }
+    }
+    else // Tryb pętli
+    {
+      s_current_led++;
+      if (s_current_led >= LED_COUNT) {
+        s_current_led = 0; // Zawinięcie do początku
+      }
+    }
+}
+
+// --- Funkcja FIZYCZNIE aktualizująca stan diod LED (wywoływana co LED_REFRESH_DELAY_MS) ---
+void refresh_led_physical_state(void)
+{
+    // Jeśli docelowa dioda (s_current_led) jest inna niż ostatnio wyświetlana
+    if (s_current_led != s_last_displayed_led)
+    {
+        // Zgaś poprzednią diodę (tę, która była ostatnio zapalona)
+        // Upewnij się, że indeks jest prawidłowy przed dostępem do tablicy
+        if (s_last_displayed_led < LED_COUNT) {
+            HAL_GPIO_WritePin(leds[s_last_displayed_led].PORT, leds[s_last_displayed_led].PIN, GPIO_PIN_RESET);
+        }
+
+        // Zapal nową, docelową diodę (s_current_led)
+        // Upewnij się, że indeks jest prawidłowy
+        if (s_current_led < LED_COUNT) {
+             HAL_GPIO_WritePin(leds[s_current_led].PORT, leds[s_current_led].PIN, GPIO_PIN_SET);
+        }
+
+        // Zaktualizuj informację o ostatnio wyświetlonej diodzie
+        s_last_displayed_led = s_current_led;
+    }
+    else
+    {
+        // Jeśli docelowa dioda jest taka sama jak ostatnio wyświetlana,
+        // upewnij się, że jest ona nadal zapalona (odświeżenie stanu).
+        // To jest potrzebne, aby dioda świeciła ciągle między zmianami logiki.
+        if (s_current_led < LED_COUNT) {
+             HAL_GPIO_WritePin(leds[s_current_led].PORT, leds[s_current_led].PIN, GPIO_PIN_SET);
+        }
+    }
+}
+
+
+// --- Funkcja odczytująca joystick i ustawiająca diodę RGB ---
+void update_rgb_led(void)
+{
+    // Odczyt stanu przycisków dżojstika
+    GPIO_PinState joy_left = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_LEFT_PIN);
+    GPIO_PinState joy_right = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_RIGHT_PIN);
+    GPIO_PinState joy_down = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_DOWN_PIN);
+    GPIO_PinState joy_ok = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_CLICK_PIN);
+
+    // Sterowanie diodą RGB - gaszenie przed zapaleniem odpowiedniego koloru
+    HAL_GPIO_WritePin(LED_RGB_RED_PORT, LED_RGB_RED_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_RGB_BLUE_PORT, LED_RGB_BLUE_PIN, GPIO_PIN_RESET);
+
+    if (joy_ok == GPIO_PIN_RESET) // Środkowy przycisk ma priorytet - zapala biały
+    {
+      HAL_GPIO_WritePin(LED_RGB_RED_PORT, LED_RGB_RED_PIN, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(LED_RGB_BLUE_PORT, LED_RGB_BLUE_PIN, GPIO_PIN_SET);
+    }
+    else // Jeśli środkowy nie jest wciśnięty, sprawdzamy pozostałe
+    {
+      if (joy_left == GPIO_PIN_RESET) {
+        HAL_GPIO_WritePin(LED_RGB_RED_PORT, LED_RGB_RED_PIN, GPIO_PIN_SET); // Lewo = Czerwony
+      }
+      if (joy_down == GPIO_PIN_RESET) {
+        HAL_GPIO_WritePin(LED_RGB_GREEN_PORT, LED_RGB_GREEN_PIN, GPIO_PIN_SET);  // Dół = Zielony
+      }
+      if (joy_right == GPIO_PIN_RESET) {
+        HAL_GPIO_WritePin(LED_RGB_BLUE_PORT, LED_RGB_BLUE_PIN, GPIO_PIN_SET);  // Prawo = Niebieski
+      }
+    }
+}
+
+// --- Funkcja aktualizująca wartość licznika 7-seg ---
+void update_7seg_counter_value(void)
+{
+    GPIO_PinState joy_ok = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_CLICK_PIN);
+
+    // Określenie kierunku zliczania
+    if (joy_ok == GPIO_PIN_RESET) // Przycisk naciśnięty - liczenie w dół
+    {
+      if (s_counter_value == 0)
+        s_counter_value = SEGMENT_COUNT - 1;
+      else
+        s_counter_value--;
+    }
+    else // Przycisk nie naciśnięty - liczenie w górę
+    {
+      if (s_counter_value == (SEGMENT_COUNT - 1))
+        s_counter_value = 0;
+      else
+        s_counter_value++;
+    }
+}
+
+// --- Funkcja zmieniająca aktywną cyfrę 7-seg ---
+void update_7seg_active_digit(void)
+{
+    // Odczyt aktualnego stanu przycisków dżojstika
+    GPIO_PinState current_joy_left = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_LEFT_PIN);
+    GPIO_PinState current_joy_right = HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_RIGHT_PIN);
+
+    // Obsługa pojedynczego kliknięcia dla lewego przycisku
+    // Sprawdzamy, czy przycisk jest TERAZ wciśnięty (RESET) i POPRZEDNIO był zwolniony (SET)
+    if (current_joy_left == GPIO_PIN_RESET && s_prev_joy_left_state == GPIO_PIN_SET)
+    {
+        // Przesunięcie w lewo (zwiększenie indeksu cyfry)
+        if (s_active_digit < (DIGIT_COUNT - 1)) { // Używamy DIGIT_COUNT - 1 jako maksymalny indeks
+            s_active_digit++;
+        } else {
+            s_active_digit = 0; // Zawinięcie
+        }
+    }
+
+    // Obsługa pojedynczego kliknięcia dla prawego przycisku
+    // Sprawdzamy, czy przycisk jest TERAZ wciśnięty (RESET) i POPRZEDNIO był zwolniony (SET)
+    if (current_joy_right == GPIO_PIN_RESET && s_prev_joy_right_state == GPIO_PIN_SET)
+    {
+        // Przesunięcie w prawo (zmniejszenie indeksu cyfry)
+        if (s_active_digit > 0) {
+            s_active_digit--;
+        } else {
+            s_active_digit = (DIGIT_COUNT - 1); // Zawinięcie do maksymalnego indeksu
+        }
+    }
+
+    // Zaktualizuj poprzedni stan przycisków na potrzeby następnej iteracji
+    s_prev_joy_left_state = current_joy_left;
+    s_prev_joy_right_state = current_joy_right;
+}
+
+
+// --- Funkcja odświeżająca (multipleksująca) wyświetlacz 7-seg ---
+void refresh_7seg_display(void)
+{
+    // 1. Wyłącz wszystkie segmenty
+    HAL_GPIO_WritePin(SEG_PORT, SEG_A_PIN | SEG_B_PIN | SEG_C_PIN | SEG_D_PIN | SEG_E_PIN | SEG_F_PIN | SEG_G_PIN, GPIO_PIN_RESET);
+
+    // 2. Wyłącz wszystkie cyfry
+    HAL_GPIO_WritePin(DIGIT_PORT, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN | DIGIT4_PIN, GPIO_PIN_RESET);
+
+    // 3. Aktywuj wybraną cyfrę (na podstawie s_active_digit)
+    // Upewnij się, że indeks jest prawidłowy
+    if (s_active_digit < DIGIT_COUNT) {
+        HAL_GPIO_WritePin(digits[s_active_digit].PORT, digits[s_active_digit].PIN, GPIO_PIN_SET);
+    }
+
+    // 4. Ustaw odpowiednie segmenty dla aktualnej wartości licznika (s_counter_value)
+    if (s_counter_value < SEGMENT_COUNT)
+    {
+      HAL_GPIO_WritePin(SEG_PORT, digit_segments[s_counter_value].SEGMENTS, GPIO_PIN_SET);
+    }
+}
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
