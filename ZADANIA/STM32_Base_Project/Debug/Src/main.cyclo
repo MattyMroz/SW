@@ -1,0 +1,4 @@
+../Src/main.c:23:6:Update_Counter	5
+../Src/main.c:54:6:Refresh_Display	3
+../Src/main.c:77:5:main	1
+../Src/main.c:96:6:Error_Handler	1

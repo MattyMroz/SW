@@ -1,0 +1,2 @@
+../Src/system_utils.c:12:6:My_SysTick_Init	16	static
+../Src/system_utils.c:29:6:Custom_Delay_ms	24	static,ignoring_inline_asm

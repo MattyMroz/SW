@@ -1,0 +1,5 @@
+../Src/gpio.c:9:6:GPIO_Clock_Enable	1
+../Src/gpio.c:25:6:GPIO_Pin_Setup	3
+../Src/gpio.c:52:6:GPIO_WritePin	2
+../Src/gpio.c:66:9:GPIO_ReadPin	1
+../Src/gpio.c:74:6:My_EnableVddIO2	1
