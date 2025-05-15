@@ -1,0 +1,2 @@
+../Src/joystick.c:14:6:Joystick_Init	16	static
+../Src/joystick.c:24:9:Joystick_Read_OK_Button_State	24	static
