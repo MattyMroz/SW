@@ -630,6 +630,9 @@ void update_7seg_active_digit(void)
   // Sprawdzamy, czy przycisk jest TERAZ wciśnięty (RESET) i POPRZEDNIO był zwolniony (SET)
   if (current_joy_left == GPIO_PIN_RESET && s_prev_joy_left_state == GPIO_PIN_SET)
   {
+    // Wyłącz aktualną cyfrę
+    HAL_GPIO_WritePin(digits[s_active_digit].PORT, digits[s_active_digit].PIN, GPIO_PIN_RESET);
+
     // Przesunięcie w lewo (zwiększenie indeksu cyfry)
     if (s_active_digit < (DIGIT_COUNT - 1))
     { // Używamy DIGIT_COUNT - 1 jako maksymalny indeks
@@ -639,12 +642,22 @@ void update_7seg_active_digit(void)
     {
       s_active_digit = 0; // Zawinięcie
     }
+
+    // Włącz nową aktywną cyfrę i ustaw jej segmenty
+    HAL_GPIO_WritePin(digits[s_active_digit].PORT, digits[s_active_digit].PIN, GPIO_PIN_SET);
+    if (s_counter_value < SEGMENT_COUNT)
+    {
+      HAL_GPIO_WritePin(SEG_PORT, digit_segments[s_counter_value].SEGMENTS, GPIO_PIN_SET);
+    }
   }
 
   // Obsługa pojedynczego kliknięcia dla prawego przycisku
   // Sprawdzamy, czy przycisk jest TERAZ wciśnięty (RESET) i POPRZEDNIO był zwolniony (SET)
   if (current_joy_right == GPIO_PIN_RESET && s_prev_joy_right_state == GPIO_PIN_SET)
   {
+    // Wyłącz aktualną cyfrę
+    HAL_GPIO_WritePin(digits[s_active_digit].PORT, digits[s_active_digit].PIN, GPIO_PIN_RESET);
+
     // Przesunięcie w prawo (zmniejszenie indeksu cyfry)
     if (s_active_digit > 0)
     {
@@ -653,6 +666,13 @@ void update_7seg_active_digit(void)
     else
     {
       s_active_digit = (DIGIT_COUNT - 1); // Zawinięcie do maksymalnego indeksu
+    }
+
+    // Włącz nową aktywną cyfrę i ustaw jej segmenty
+    HAL_GPIO_WritePin(digits[s_active_digit].PORT, digits[s_active_digit].PIN, GPIO_PIN_SET);
+    if (s_counter_value < SEGMENT_COUNT)
+    {
+      HAL_GPIO_WritePin(SEG_PORT, digit_segments[s_counter_value].SEGMENTS, GPIO_PIN_SET);
     }
   }
 
@@ -664,19 +684,16 @@ void update_7seg_active_digit(void)
 // --- Funkcja odświeżająca (multipleksująca) wyświetlacz 7-seg ---
 void refresh_7seg_display(void)
 {
-  // 1. Wyłącz wszystkie segmenty
-  HAL_GPIO_WritePin(SEG_PORT, SEG_A_PIN | SEG_B_PIN | SEG_C_PIN | SEG_D_PIN | SEG_E_PIN | SEG_F_PIN | SEG_G_PIN, GPIO_PIN_RESET);
+  // Używamy cyfry 8 do RESET
+  HAL_GPIO_WritePin(SEG_PORT, digit_segments[8].SEGMENTS, GPIO_PIN_RESET);
 
-  // 2. Wyłącz wszystkie cyfry
-  HAL_GPIO_WritePin(DIGIT_PORT, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN | DIGIT4_PIN, GPIO_PIN_RESET);
-
-  // 3. Aktywuj wybraną cyfrę (na podstawie s_active_digit)
+  // Aktywuj wybraną cyfrę (na podstawie s_active_digit)
   if (s_active_digit < DIGIT_COUNT)
   {
     HAL_GPIO_WritePin(digits[s_active_digit].PORT, digits[s_active_digit].PIN, GPIO_PIN_SET);
   }
 
-  // 4. Ustaw odpowiednie segmenty dla aktualnej wartości licznika (s_counter_value)
+  // Ustaw odpowiednie segmenty dla aktualnej wartości licznika (s_counter_value)
   if (s_counter_value < SEGMENT_COUNT)
   {
     HAL_GPIO_WritePin(SEG_PORT, digit_segments[s_counter_value].SEGMENTS, GPIO_PIN_SET);
