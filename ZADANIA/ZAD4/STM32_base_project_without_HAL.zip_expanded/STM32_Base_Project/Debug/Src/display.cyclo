@@ -1,0 +1,3 @@
+../Src/display.c:29:6:Display_Init	1
+../Src/display.c:56:6:Get_Digits_For_Display	5
+../Src/display.c:97:6:Display_Digit	5

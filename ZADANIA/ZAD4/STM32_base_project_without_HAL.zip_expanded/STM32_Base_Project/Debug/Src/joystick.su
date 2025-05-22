@@ -1,0 +1,2 @@
+../Src/joystick.c:11:6:Joystick_Init	16	static
+../Src/joystick.c:18:9:Joystick_Get_OK_Raw_State	8	static

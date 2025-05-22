@@ -1,0 +1,5 @@
+../Src/main.c:39:6:Process_Joystick	16	static
+../Src/main.c:59:6:Update_Counter_Logic	8	static
+../Src/main.c:78:6:Refresh_Display_Logic	8	static
+../Src/main.c:99:5:main	8	static
+../Src/main.c:129:6:Error_Handler	4	static

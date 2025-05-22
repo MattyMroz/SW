@@ -1,0 +1,5 @@
+../Src/main.c:39:6:Process_Joystick	3
+../Src/main.c:59:6:Update_Counter_Logic	4
+../Src/main.c:78:6:Refresh_Display_Logic	2
+../Src/main.c:99:5:main	4
+../Src/main.c:129:6:Error_Handler	1
